@@ -1,6 +1,5 @@
 var FluxDataActions = require('../actions/FluxDataActions');
 
-var thingSpeakApiUrl = "https://api.thingspeak.com/channels/<CHANNEL_ID>/feeds.json?results=520&key=<CHANNEL_KEY>";
 var updateInterval = 30000;
 
 //Load data from thing speak api
