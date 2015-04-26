@@ -2,7 +2,7 @@ var React = require('react');
 var DataStore = require('../stores/DataStore');
 var FluxOverlay = require('./FluxOverlay.react');
 var FluxFastValue = require('./FluxFastValue.react');
-var Chart = require("react-chartjs").Bar;
+var Chart = require("react-chartjs").Line;
 
 // Method to retrieve state from Stores
 function getDataState() {
