@@ -1,0 +1,33 @@
+{
+  "name": "ppolivka-flux-meteostation",
+  "version": "0.0.1",
+  "description": "Meteostation with flux",
+  "main": "js/app.js",
+  "dependencies": {
+    "flux": "^2.0.0",
+    "react": "^0.12.0",
+    "underscore": "^1.7.0",
+    "react-chartjs": "^0.6.0"
+  },
+  "devDependencies": {
+    "browserify": "~6.2.0",
+    "envify": "~3.0.0",
+    "reactify": "^0.15",
+    "watchify": "~2.1.0",
+    "uglify-js": "2.4.20",
+    "uglifycss": "0.0.14"
+  },
+  "scripts": {
+    "start": "watchify -o js/bundle.js -v -d .",
+    "build-css": "uglifycss css/app.css > css/app.min.css",
+    "build-js": "browserify . | uglifyjs -cm > js/bundle.min.js",
+    "build": "npm run build-css && npm run build-js"
+  },
+  "author": "Pavel Polivka",
+  "browserify": {
+    "transform": [
+      "reactify",
+      "envify"
+    ]
+  }
+}

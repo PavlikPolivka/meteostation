@@ -1,0 +1,139 @@
+var AppDispatcher = require('../dispatcher/AppDispatcher');
+var EventEmitter = require('events').EventEmitter;
+var FluxDataConstants = require('../constants/FluxDataConstants');
+var _ = require('underscore');
+var DateFormat = require('../DateFormat.js');
+
+// Define initial data points
+var _initialized = false, _lastValue = null, _temps = {}, _humidity = {};
+
+var _tempChartData = {}, _humidityChartData;
+
+function loadData(data) {
+  _lastValue = data.channel.last_entry_id;
+  _temps = _.map(data.feeds, function(entry){ return {id: entry.entry_id, time:entry.created_at, value:entry.field1} });
+  _humidity = _.map(data.feeds, function(entry){ return {id: entry.entry_id, time:entry.created_at, value:entry.field2} });
+  _temps = _.indexBy(_temps,'id');
+  _tempChartData = transforForChartData(_temps);
+  _humidityChartData = transforForChartData(_humidity);
+  _humidity = _.indexBy(_humidity,'id');
+  _initialized = true;
+}
+
+function transforForChartData(values){
+  var labels=[];
+  var dataset=[];
+  var countLabels = 12;
+  var countValues = 0;
+
+  var filtered = _.filter(values,function(){
+    if(countValues == 12){
+      countValues = 0;
+      return 1;
+    } else {
+      countValues++;
+      return 0;
+    }
+  });
+
+  _.map(filtered, function(entry){
+    var label = "";
+    if(countLabels==12){ //144
+      label = DateFormat.format(new Date(entry.time),"dd-m-yy hh")+"h";
+      //label = "a";
+      countLabels=0;
+    } else {
+      countLabels++;  
+    }   
+    labels.push(label);
+    //dataset.push(entry.value);
+    dataset.push(Number(entry.value));
+  });
+
+  return {
+    labels: labels,
+    datasets: [{
+                  fillColor: "rgba(220,220,220,0.2)",
+                  strokeColor: "rgba(220,220,220,1)",
+                  pointColor: "rgba(220,220,220,1)",
+                  data: dataset
+    }]
+  };
+}
+
+
+// Extend DataStore with EventEmitter to add eventing capabilities
+var DataStore = _.extend({}, EventEmitter.prototype, {
+
+  getLastTemperature: function(){
+    return _temps[_lastValue];
+  },
+
+  // Return temperature line
+  getTemperature: function() {
+    return _temps;
+  },
+
+  getTemperatureChart: function() {
+    return _tempChartData;
+  },
+
+  getLastHumidity: function(){
+    return _humidity[_lastValue];
+  },
+
+  // Return humidity line
+  getHumidity: function(){
+    return _humidity;
+  },
+
+  getHumidityChart: function() {
+    return _humidityChartData;
+  },
+
+  //Is everything initialized
+  isInitialized: function(){
+    return _initialized;
+  },
+
+  // Emit Change event
+  emitChange: function() {
+    this.emit('change');
+  },
+
+  // Add change listener
+  addChangeListener: function(callback) {
+    this.on('change', callback);
+  },
+
+  // Remove change listener
+  removeChangeListener: function(callback) {
+    this.removeListener('change', callback);
+  }
+
+});
+
+// Register callback with AppDispatcher
+AppDispatcher.register(function(payload) {
+  var action = payload.action;
+  var text;
+
+  switch(action.actionType) {
+
+    // Respond to DATA_RECEIVE action
+    case FluxDataConstants.DATA_RECEIVE:
+      loadData(action.data);
+      break;
+
+    default:
+      return true;
+  }
+
+  // If action was responded to, emit change event
+  DataStore.emitChange();
+
+  return true;
+
+});
+
+module.exports = DataStore;
