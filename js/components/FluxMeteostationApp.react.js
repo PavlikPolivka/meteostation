@@ -2,7 +2,7 @@ var React = require('react');
 var DataStore = require('../stores/DataStore');
 var FluxOverlay = require('./FluxOverlay.react');
 var FluxFastValue = require('./FluxFastValue.react');
-var LineChart = require("react-chartjs").Line;
+var Chart = require("react-chartjs").Bar;
 
 // Method to retrieve state from Stores
 function getDataState() {
@@ -53,11 +53,11 @@ var FluxMeteostationApp = React.createClass({
         <div className="charts">
           <div className="temperature">
             <h3>Teplota</h3>
-            <LineChart data={this.state.tempChartValues} options={chartOptions} width="1140" height="300"/>
+            <Chart data={this.state.tempChartValues} options={chartOptions} width="1140" height="300"/>
           </div>
           <div className="humidity">
             <h3>Vlhkost</h3>
-            <LineChart data={this.state.humidityChartValues} options={chartOptions} width="1140" height="300"/>
+            <Chart data={this.state.humidityChartValues} options={chartOptions} width="1140" height="300"/>
           </div>    
         </div>
       </div>;

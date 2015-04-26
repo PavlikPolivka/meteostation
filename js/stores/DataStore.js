@@ -23,7 +23,7 @@ function loadData(data) {
 function transforForChartData(values){
   var labels=[];
   var dataset=[];
-  var countLabels = 12;
+  var countLabels = 0;
   var countValues = 0;
 
   var filtered = _.filter(values,function(){
@@ -38,8 +38,8 @@ function transforForChartData(values){
 
   _.map(filtered, function(entry){
     var label = "";
-    if(countLabels==12){ //144
-      label = DateFormat.format(new Date(entry.time),"dd-m-yy hh")+"h";
+    if(countLabels==0){ //144
+      label = DateFormat.format(new Date(entry.time),"dd.m. HH")+"h";
       //label = "a";
       countLabels=0;
     } else {
