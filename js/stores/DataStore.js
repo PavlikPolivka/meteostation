@@ -5,7 +5,7 @@ var _ = require('underscore');
 var DateFormat = require('../DateFormat.js');
 
 // Define initial data points
-var _initialized = false, _lastValue = null, _temps = {}, _humidity = {};
+var _initialized = false, _lastValue = null, _temps = {}, _humidity = {}, _size, _redraw=false, _labelCount=1;
 
 var _tempChartData = {}, _humidityChartData;
 
@@ -20,10 +20,45 @@ function loadData(data) {
   _initialized = true;
 }
 
+function handleLabelChange(data) {
+    var recalcValues = false;
+    if(data < 992 && _labelCount != 1) { 
+       _labelCount = 1;
+       recalcValues = true;
+    }
+    if(data >= 992 && _labelCount != 0) {
+      _labelCount = 0;
+      recalcValues = true;
+    }
+    return recalcValues;
+}
+
+function resizeRecalc(data){
+  if(_initialized) {
+    
+    if(handleLabelChange(data)) {
+      _tempChartData = transforForChartData(_temps);
+      _humidityChartData = transforForChartData(_humidity);
+    }
+    _redraw = false;
+    if(data >= 1200 && _size<1200){
+      _redraw = true;
+    }
+    if(data >= 992 && (_size<768 || _size>=1200)){
+      _redraw = true;
+    }
+    if(data < 768 && _size >= 768) {
+     _redraw = true;  
+    }
+    _redraw = true;
+    _size = data;  
+  }
+}
+
 function transforForChartData(values){
   var labels=[];
   var dataset=[];
-  var countLabels = 0;
+  var countLabels = _labelCount;
   var countValues = 0;
 
   var filtered = _.filter(values,function(){
@@ -38,7 +73,7 @@ function transforForChartData(values){
 
   _.map(filtered, function(entry){
     var label = "";
-    if(countLabels==0){ //144
+    if(countLabels==_labelCount){
       label = DateFormat.format(new Date(entry.time),"dd.m. HH")+"h";
       //label = "a";
       countLabels=0;
@@ -96,6 +131,10 @@ var DataStore = _.extend({}, EventEmitter.prototype, {
     return _initialized;
   },
 
+  shouldBeRedrawn: function(){
+    return _redraw;
+  },
+
   // Emit Change event
   emitChange: function() {
     this.emit('change');
@@ -123,6 +162,12 @@ AppDispatcher.register(function(payload) {
     // Respond to DATA_RECEIVE action
     case FluxDataConstants.DATA_RECEIVE:
       loadData(action.data);
+      break;
+    case FluxDataConstants.WINDOW_RESIZE:
+      resizeRecalc(action.data);
+      break;
+    case FluxDataConstants.INIT_WINDOW:
+      handleLabelChange(action.data);
       break;
 
     default:

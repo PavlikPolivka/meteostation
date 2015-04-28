@@ -13,13 +13,15 @@ div.overlay.inactive {
     display: none;
 }
 
-@media (min-width: 768px) {
-    canvas {
-      width: 720px !important;
+canvas {
+  width: 100% !important;
+  height: 300px !important;
 }
+
 @media (min-width: 768px) {
     canvas {
       width: 720px !important;
+  }
 }
 @media (min-width: 992px) {
   canvas {

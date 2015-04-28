@@ -3,6 +3,7 @@ var DataStore = require('../stores/DataStore');
 var FluxOverlay = require('./FluxOverlay.react');
 var FluxFastValue = require('./FluxFastValue.react');
 var Chart = require("react-chartjs").Line;
+var FluxDataActions = require('../actions/FluxDataActions');
 
 // Method to retrieve state from Stores
 function getDataState() {
@@ -11,14 +12,15 @@ function getDataState() {
     tempChartValues: DataStore.getTemperatureChart(),
     humidityChartValues: DataStore.getHumidityChart(),
     lastTemp: DataStore.getLastTemperature(),
-    lastHumidity: DataStore.getLastHumidity()
+    lastHumidity: DataStore.getLastHumidity(),
+    redraw: DataStore.shouldBeRedrawn()
   };
 }
 
 var chartOptions = 
   {
     pointDotRadius : 1,
-    pointHitDetectionRadius : 5
+    pointHitDetectionRadius : 3
 };
 
 
@@ -32,12 +34,19 @@ var FluxMeteostationApp = React.createClass({
 
   // Add change listeners to stores
   componentDidMount: function() {
+    window.addEventListener('resize', this.handleResize);
     DataStore.addChangeListener(this._onChange);
+    FluxDataActions.initWindow(window.innerWidth);
   },
 
   // Remove change listers from stores
   componentWillUnmount: function() {
     DataStore.removeChangeListener(this._onChange);
+    window.removeEventListener('resize', this.handleResize);
+  },
+
+  handleResize: function(e) {
+    FluxDataActions.resizeWindow(window.innerWidth);
   },
 
   // Render our child components, passing state via props
@@ -53,11 +62,11 @@ var FluxMeteostationApp = React.createClass({
         <div className="charts">
           <div className="temperature">
             <h3>Teplota</h3>
-            <Chart data={this.state.tempChartValues} options={chartOptions} width="1140" height="300"/>
+            <Chart data={this.state.tempChartValues} options={chartOptions} redraw={this.state.redraw} width="1140" height="300"/>
           </div>
           <div className="humidity">
             <h3>Vlhkost</h3>
-            <Chart data={this.state.humidityChartValues} options={chartOptions} width="1140" height="300"/>
+            <Chart data={this.state.humidityChartValues} options={chartOptions} redraw={this.state.redraw} width="1140" height="300"/>
           </div>    
         </div>
       </div>;
